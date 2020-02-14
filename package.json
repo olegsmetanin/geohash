@@ -1,0 +1,37 @@
+{
+  "name": "geohash",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --coverage --watchAll",
+    "build": "tsc",
+    "build:watch": "onchange 'src/**/*.ts' -- npm run build",
+    "view:coverage": "serve coverage/lcov-report",
+    "clean": "rm -rf coverage src/**/*.js src/**/*.map",
+    "start": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/olegsmetanin/geohash.git"
+  },
+  "keywords": [],
+  "author": "Oleg Smetanin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/olegsmetanin/geohash/issues"
+  },
+  "homepage": "https://github.com/olegsmetanin/geohash#readme",
+  "devDependencies": {
+    "@types/jest": "^25.1.2",
+    "@types/node": "^13.7.1",
+    "@types/source-map-support": "^0.5.1",
+    "jest": "^25.1.0",
+    "onchange": "^6.1.0",
+    "serve": "^11.3.0",
+    "source-map-support": "^0.5.16",
+    "ts-jest": "^25.2.0",
+    "typescript": "^3.7.5"
+  }
+}
