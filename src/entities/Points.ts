@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
 
-@Entity('points')
+@Entity('point')
 export class Point {
 
   @PrimaryGeneratedColumn()
