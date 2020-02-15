@@ -2,6 +2,8 @@
 /* Geohash encoding/decoding and associated functions   (c) Chris Veness 2014-2019 / MIT Licence  */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
+// https://codepen.io/mgevans/pen/NrGzJG
+
 const base32 = '0123456789bcdefghjkmnpqrstuvwxyz'; // (geohash-specific) Base32 map
 
 
@@ -193,10 +195,10 @@ export class Geohash {
             'w': [ '238967debc01fg45kmstqrwxuvhjyznp', '14365h7k9dcfesgujnmqp0r2twvyx8zb' ],
         };
         const border: { [id: string] : string[] } = {
-            ['n']: [ 'prxz',     'bcfguvyz' ],
-            ['s']: [ '028b',     '0145hjnp' ],
-            ['e']: [ 'bcfguvyz', 'prxz'     ],
-            ['w']: [ '0145hjnp', '028b'     ],
+            'n': [ 'prxz',     'bcfguvyz' ],
+            's': [ '028b',     '0145hjnp' ],
+            'e': [ 'bcfguvyz', 'prxz'     ],
+            'w': [ '0145hjnp', '028b'     ],
         };
 
         const lastCh = geohash.slice(-1);    // last character of hash

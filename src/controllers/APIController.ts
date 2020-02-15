@@ -8,9 +8,10 @@ export class APIController {
 
   pointsRepository = getManager().getRepository(Point);
 
-  @Get()
+  @Get(':id')
   private async get(req: Request, res: Response) {
-    const out = await this.pointsRepository
+    const tile_geohash = req.params.id || ''// v7
+    const clusters = await this.pointsRepository
       .createQueryBuilder('point')
       .select([
         'AVG(point.lat) as lat',
@@ -28,13 +29,39 @@ export class APIController {
       ])
       .where('tile_geohash = :tile_geohash')
       .groupBy('cluster_geohash')
-      .setParameter('cluster_precision', 4)
-      .setParameter('tile_geohash', 'v7')
-      .setParameter('tile_precision', 2)
+      .setParameter('cluster_precision', tile_geohash.length + 2)
+      .setParameter('tile_geohash', tile_geohash)
+      .setParameter('tile_precision', tile_geohash.length)
       // .getSql()
       .getRawMany()
 
+    const _points = await this.pointsRepository
+      .createQueryBuilder('point')
+      .select([
+        'point.lat',
+        'point.lng',
+        'point.address',
 
-    res.status(200).json(out)
+        'SUBSTR(point.geohash, 1, :cluster_precision) as cluster_geohash',
+        'SUBSTR(point.geohash, 1, :tile_precision) as tile_geohash',
+      ])
+      .where('tile_geohash = :tile_geohash')
+      .groupBy('cluster_geohash')
+      .having('COUNT(*) = 1')
+      .setParameter('cluster_precision', tile_geohash.length + 2)
+      .setParameter('tile_geohash', tile_geohash)
+      .setParameter('tile_precision', tile_geohash.length)
+      // .getSql()
+      .getRawMany()
+
+      const points = _points.reduce((obj, item) => {
+        obj[item.cluster_geohash] = item
+        return obj
+      }, {})
+
+    res.status(200).json({
+      clusters,
+      points
+    })
   }
 }

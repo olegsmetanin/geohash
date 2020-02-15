@@ -26,7 +26,7 @@ export class Server extends CoreServer {
 
     public start(port: number): void {
         this.app.get('*', (req, res) => {
-            res.send(this.SERVER_STARTED + port)
+            res.status(404).send("Not found.")
         })
         this.app.listen(port, () => {
             console.log(this.SERVER_STARTED + port)
