@@ -1,5 +1,6 @@
-node_modules
-src/**/*.js
-src/**/*.map
-coverage
-data/points.db
+**/node_modules
+**/dist
+**/coverage
+**/.idea
+**/.DS_Store
+package-lock.json

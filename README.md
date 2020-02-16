@@ -1,9 +1,9 @@
 # geohash
 
 ```
-npm i
-npm run typeorm migration:run
-npm run start
+$ yarn
+$ yarn bootstrap
+$ yarn svc:typeorm migration:run
+$ yarn svc:start
 
-curl localhost:3000/api/v7
 ```
