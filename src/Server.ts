@@ -1,4 +1,5 @@
 import * as bodyParser from 'body-parser'
+import cors from 'cors'
 import * as controllers from './controllers'
 import { Server as CoreServer } from '@overnightjs/core'
 
@@ -8,6 +9,7 @@ export class Server extends CoreServer {
 
     constructor() {
         super(true);
+        this.app.use(cors())
         this.app.use(bodyParser.json())
         this.app.use(bodyParser.urlencoded({extended: true}))
         this.setupControllers()
