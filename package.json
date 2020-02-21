@@ -9,7 +9,8 @@
     "all:watch": "lerna run --parallel --stream watch",
     "all:build": "lerna run --stream build",
     "svc:start": "cd packages/svc && yarn start",
-    "svc:typeorm": "cd packages/svc && yarn typeorm"
+    "svc:typeorm": "cd packages/svc && yarn typeorm",
+    "svc:test:watch": "cd packages/svc && yarn test:watch"
   },
   "devDependencies": {
     "cross-env": "6.0.3",

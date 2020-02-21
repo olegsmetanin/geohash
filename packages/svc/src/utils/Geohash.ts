@@ -17,7 +17,7 @@ export class Geohash {
      * evaluated precision.
      *
      * @param   {number} lat - Latitude in degrees.
-     * @param   {number} lon - Longitude in degrees.
+     * @param   {number} lng - Longitude in degrees.
      * @param   {number} [precision] - Number of characters in resulting geohash.
      * @returns {string} Geohash of supplied latitude/longitude.
      * @throws  Invalid geohash.
@@ -25,51 +25,51 @@ export class Geohash {
      * @example
      *     const geohash = Geohash.encode(52.205, 0.119, 7); // => 'u120fxw'
      */
-    static encode(lat: number, lon: number, precision: number): string {
+    static encode(lat: number, lng: number, precision: number): string {
         // infer precision?
         if (typeof precision == 'undefined') {
-            // refine geohash until it matches precision of supplied lat/lon
-            for (let p=1; p<=12; p++) {
-                const hash = Geohash.encode(lat, lon, p)
+            // refine geohash until it matches precision of supplied lat/lng
+            for (let p = 1; p <= 12; p++) {
+                const hash = Geohash.encode(lat, lng, p)
                 const posn = Geohash.decode(hash)
-                if (posn.lat==lat && posn.lon==lon) return hash
+                if (posn.lat == lat && posn.lng == lng) return hash
             }
             precision = 12 // set to maximum
         }
 
         lat = Number(lat)
-        lon = Number(lon)
+        lng = Number(lng)
         precision = Number(precision)
 
-        if (isNaN(lat) || isNaN(lon) || isNaN(precision)) throw new Error('Invalid geohash')
+        if (isNaN(lat) || isNaN(lng) || isNaN(precision)) throw new Error('Invalid geohash')
 
         let idx = 0 // index into base32 map
         let bit = 0 // each char holds 5 bits
         let evenBit = true
         let geohash = ''
 
-        let latMin =  -90, latMax =  90
-        let lonMin = -180, lonMax = 180
+        let latMin = -90, latMax = 90
+        let lngMin = -180, lngMax = 180
 
         while (geohash.length < precision) {
             if (evenBit) {
                 // bisect E-W longitude
-                const lonMid = (lonMin + lonMax) / 2
-                if (lon >= lonMid) {
-                    idx = idx*2 + 1
-                    lonMin = lonMid
+                const lngMid = (lngMin + lngMax) / 2
+                if (lng >= lngMid) {
+                    idx = idx * 2 + 1
+                    lngMin = lngMid
                 } else {
-                    idx = idx*2
-                    lonMax = lonMid
+                    idx = idx * 2
+                    lngMax = lngMid
                 }
             } else {
                 // bisect N-S latitude
                 const latMid = (latMin + latMax) / 2
                 if (lat >= latMid) {
-                    idx = idx*2 + 1
+                    idx = idx * 2 + 1
                     latMin = latMid
                 } else {
-                    idx = idx*2;
+                    idx = idx * 2;
                     latMax = latMid
                 }
             }
@@ -92,29 +92,29 @@ export class Geohash {
      *     to reasonable precision).
      *
      * @param   {string} geohash - Geohash string to be converted to latitude/longitude.
-     * @returns {{lat:number, lon:number}} (Center of) geohashed location.
+     * @returns {{lat:number, lng:number}} (Center of) geohashed location.
      * @throws  Invalid geohash.
      *
      * @example
-     *     const latlon = Geohash.decode('u120fxw'); // => { lat: 52.205, lon: 0.1188 }
+     *     const latlng = Geohash.decode('u120fxw'); // => { lat: 52.205, lng: 0.1188 }
      */
     static decode(geohash: string) {
 
         const bounds = Geohash.bounds(geohash) // <-- the hard work
         // now just determine the centre of the cell...
 
-        const latMin = bounds.sw.lat, lonMin = bounds.sw.lon
-        const latMax = bounds.ne.lat, lonMax = bounds.ne.lon
+        const latMin = bounds.sw.lat, lngMin = bounds.sw.lng
+        const latMax = bounds.ne.lat, lngMax = bounds.ne.lng
 
         // cell centre
-        let lat0 = (latMin + latMax)/2
-        let lon0 = (lonMin + lonMax)/2
+        let lat0 = (latMin + latMax) / 2
+        let lng0 = (lngMin + lngMax) / 2
 
         // round to close to centre without excessive precision: ⌊2-log10(Δ°)⌋ decimal places
-        let lat = lat0.toFixed(Math.floor(2-Math.log(latMax-latMin)/Math.LN10))
-        let lon = lon0.toFixed(Math.floor(2-Math.log(lonMax-lonMin)/Math.LN10))
+        let lat = lat0.toFixed(Math.floor(2 - Math.log(latMax - latMin) / Math.LN10))
+        let lng = lng0.toFixed(Math.floor(2 - Math.log(lngMax - lngMin) / Math.LN10))
 
-        return { lat: Number(lat), lon: Number(lon) }
+        return { lat: Number(lat), lng: Number(lng) }
     }
 
 
@@ -122,7 +122,7 @@ export class Geohash {
      * Returns SW/NE latitude/longitude bounds of specified geohash.
      *
      * @param   {string} geohash - Cell that bounds are required of.
-     * @returns {{sw: {lat: number, lon: number}, ne: {lat: number, lon: number}}}
+     * @returns {{sw: {lat: number, lng: number}, ne: {lat: number, lng: number}}}
      * @throws  Invalid geohash.
      */
     static bounds(geohash: string) {
@@ -131,27 +131,27 @@ export class Geohash {
         geohash = geohash.toLowerCase()
 
         let evenBit = true
-        let latMin =  -90, latMax =  90
-        let lonMin = -180, lonMax = 180
+        let latMin = -90, latMax = 90
+        let lngMin = -180, lngMax = 180
 
-        for (let i=0; i<geohash.length; i++) {
+        for (let i = 0; i < geohash.length; i++) {
             const chr = geohash.charAt(i)
             const idx = base32.indexOf(chr)
             if (idx == -1) throw new Error('Invalid geohash')
 
-            for (let n=4; n>=0; n--) {
+            for (let n = 4; n >= 0; n--) {
                 const bitN = idx >> n & 1
                 if (evenBit) {
                     // longitude
-                    const lonMid = (lonMin+lonMax) / 2
+                    const lngMid = (lngMin + lngMax) / 2
                     if (bitN == 1) {
-                        lonMin = lonMid
+                        lngMin = lngMid
                     } else {
-                        lonMax = lonMid
+                        lngMax = lngMid
                     }
                 } else {
                     // latitude
-                    const latMid = (latMin+latMax) / 2
+                    const latMid = (latMin + latMax) / 2
                     if (bitN == 1) {
                         latMin = latMid
                     } else {
@@ -163,13 +163,12 @@ export class Geohash {
         }
 
         const bounds = {
-            sw: { lat: latMin, lon: lonMin },
-            ne: { lat: latMax, lon: lonMax },
+            sw: { lat: latMin, lng: lngMin },
+            ne: { lat: latMax, lng: lngMax },
         }
 
         return bounds
     }
-
 
     /**
      * Determines adjacent cell in given direction.
@@ -188,17 +187,17 @@ export class Geohash {
         if (geohash.length == 0) throw new Error('Invalid geohash')
         if ('nsew'.indexOf(direction) == -1) throw new Error('Invalid direction')
 
-        const neighbour: { [id: string] : string[] } = {
-            'n': [ 'p0r21436x8zb9dcf5h7kjnmqesgutwvy', 'bc01fg45238967deuvhjyznpkmstqrwx' ],
-            's': [ '14365h7k9dcfesgujnmqp0r2twvyx8zb', '238967debc01fg45kmstqrwxuvhjyznp' ],
-            'e': [ 'bc01fg45238967deuvhjyznpkmstqrwx', 'p0r21436x8zb9dcf5h7kjnmqesgutwvy' ],
-            'w': [ '238967debc01fg45kmstqrwxuvhjyznp', '14365h7k9dcfesgujnmqp0r2twvyx8zb' ],
+        const neighbour: { [id: string]: string[] } = {
+            'n': ['p0r21436x8zb9dcf5h7kjnmqesgutwvy', 'bc01fg45238967deuvhjyznpkmstqrwx'],
+            's': ['14365h7k9dcfesgujnmqp0r2twvyx8zb', '238967debc01fg45kmstqrwxuvhjyznp'],
+            'e': ['bc01fg45238967deuvhjyznpkmstqrwx', 'p0r21436x8zb9dcf5h7kjnmqesgutwvy'],
+            'w': ['238967debc01fg45kmstqrwxuvhjyznp', '14365h7k9dcfesgujnmqp0r2twvyx8zb'],
         }
-        const border: { [id: string] : string[] } = {
-            'n': [ 'prxz',     'bcfguvyz' ],
-            's': [ '028b',     '0145hjnp' ],
-            'e': [ 'bcfguvyz', 'prxz'     ],
-            'w': [ '0145hjnp', '028b'     ],
+        const border: { [id: string]: string[] } = {
+            'n': ['prxz', 'bcfguvyz'],
+            's': ['028b', '0145hjnp'],
+            'e': ['bcfguvyz', 'prxz'],
+            'w': ['0145hjnp', '028b'],
         }
 
         const lastCh = geohash.slice(-1)    // last character of hash
@@ -225,15 +224,69 @@ export class Geohash {
      */
     static neighbours(geohash: string) {
         return {
-            'n':  Geohash.adjacent(geohash, 'n'),
+            'n': Geohash.adjacent(geohash, 'n'),
             'ne': Geohash.adjacent(Geohash.adjacent(geohash, 'n'), 'e'),
-            'e':  Geohash.adjacent(geohash, 'e'),
+            'e': Geohash.adjacent(geohash, 'e'),
             'se': Geohash.adjacent(Geohash.adjacent(geohash, 's'), 'e'),
-            's':  Geohash.adjacent(geohash, 's'),
+            's': Geohash.adjacent(geohash, 's'),
             'sw': Geohash.adjacent(Geohash.adjacent(geohash, 's'), 'w'),
-            'w':  Geohash.adjacent(geohash, 'w'),
+            'w': Geohash.adjacent(geohash, 'w'),
             'nw': Geohash.adjacent(Geohash.adjacent(geohash, 'n'), 'w'),
         }
+    }
+
+    /**
+     * Bounding Boxes
+     *
+     * Return all the hashString between minLat, minLng, maxLat, maxLng in numberOfChars
+     * @param {number} minLat
+     * @param {number} minLng
+     * @param {number} maxLat
+     * @param {number} maxLng
+     * @param {number} [precision] - Number of characters in resulting geohash.
+     * @returns {Array<string>}
+     * @throws Precision must be strictly positive.
+     */
+    static encode_bounds(
+        minLat: number,
+        minLng: number,
+        maxLat: number,
+        maxLng: number,
+        precision: number) {
+        if (precision <= 0) {
+            throw new Error('precision must be strictly positive')
+        }
+        precision = precision || 12
+
+        var hashSouthWest = Geohash.encode(minLat, minLng, precision)
+        var hashNorthEast = Geohash.encode(maxLat, maxLng, precision)
+
+        var boxSouthWest = Geohash.bounds(hashSouthWest)
+        var boxNorthEast = Geohash.bounds(hashNorthEast)
+
+        var perLat = boxSouthWest.ne.lat - boxSouthWest.sw.lat
+        var perLng = boxSouthWest.ne.lng - boxSouthWest.sw.lng
+
+        var latStep = Math.round((boxNorthEast.sw.lat - boxSouthWest.sw.lat) / perLat)
+        var lngStep = Math.round((boxNorthEast.sw.lng - boxSouthWest.sw.lng) / perLng)
+
+        var hashList = []
+
+        var lat = 0
+        var poilatgeohash = hashSouthWest
+        while (lat <= latStep) {
+            var lng = 0
+            var poigeohash = poilatgeohash
+            while (lng <= lngStep) {
+                hashList.push(poigeohash)
+                poigeohash = Geohash.adjacent(poigeohash, 'e')
+                lng++
+            }
+            poilatgeohash = Geohash.adjacent(poilatgeohash, 's')
+            lat++
+        }
+
+        return hashList
     }
 
 }

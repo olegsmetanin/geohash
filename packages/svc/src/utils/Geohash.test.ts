@@ -15,7 +15,7 @@ describe('Geohash', () => {
   })
 
   it('decodes Jutland', () => {
-    expect(Geohash.decode('u4pruy')).toStrictEqual({ lat: 57.648, lon: 10.410 })
+    expect(Geohash.decode('u4pruy')).toStrictEqual({ lat: 57.648, lng: 10.410 })
   })
 
   it('encodes Curitiba', () => {
@@ -23,7 +23,7 @@ describe('Geohash', () => {
   })
 
   it('decodes Curitiba', () => {
-    expect(Geohash.decode('6gkzwgjz')).toStrictEqual({ lat: -25.38262, lon: -49.26561 })
+    expect(Geohash.decode('6gkzwgjz')).toStrictEqual({ lat: -25.38262, lng: -49.26561 })
   })
 
   it('fetches neighbours', () => {
@@ -32,6 +32,11 @@ describe('Geohash', () => {
 
   it('matches geohash.org', () => {
     expect(Geohash.encode(37.25, 123.75, 12)).toStrictEqual('wy85bj0hbp21')
+  })
+
+  it('matches encode_bounds', () => {
+    expect(Geohash.encode_bounds(30, 120, 30.0001, 120.0001, 8)).toStrictEqual(["wtm6dtm6", "wtm6dtm3"])
+    expect(() => Geohash.encode_bounds(30, 120, 30.0001, 120.0001, 0)).toThrow('precision must be strictly positive')
   })
 
 })
