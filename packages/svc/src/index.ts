@@ -17,7 +17,7 @@ createConnection(dbconfig).then(async connection => {
 
 
   const server = new Server()
-  server.start(3000)
+  server.start(3001)
 
 //   // register all application routes
 

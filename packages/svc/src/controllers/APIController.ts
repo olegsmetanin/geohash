@@ -11,7 +11,9 @@ export class APIController {
   @Get(':id')
   private async get(req: Request, res: Response) {
     const tile_geohash = req.params.id || ''// v7
-    const clusters = await this.pointsRepository
+    var clusters = []
+    if (tile_geohash.length < 5) {
+    clusters = await this.pointsRepository
       .createQueryBuilder('point')
       .select([
         'AVG(point.lat) as lat',
@@ -29,18 +31,20 @@ export class APIController {
       ])
       .where('tile_geohash = :tile_geohash')
       .groupBy('cluster_geohash')
-      .setParameter('cluster_precision', tile_geohash.length + 2)
+      .having('COUNT(*) != 1')
+      .setParameter('cluster_precision', tile_geohash.length + 1)
       .setParameter('tile_geohash', tile_geohash)
       .setParameter('tile_precision', tile_geohash.length)
       // .getSql()
       .getRawMany()
+    }
 
-    const _points = await this.pointsRepository
+    const markers = await this.pointsRepository
       .createQueryBuilder('point')
       .select([
-        'point.lat',
-        'point.lng',
-        'point.address',
+        'point.lat as lat',
+        'point.lng as lng',
+        'point.address as address',
 
         'SUBSTR(point.geohash, 1, :cluster_precision) as cluster_geohash',
         'SUBSTR(point.geohash, 1, :tile_precision) as tile_geohash',
@@ -48,20 +52,20 @@ export class APIController {
       .where('tile_geohash = :tile_geohash')
       .groupBy('cluster_geohash')
       .having('COUNT(*) = 1')
-      .setParameter('cluster_precision', tile_geohash.length + 2)
+      .setParameter('cluster_precision', tile_geohash.length + 1)
       .setParameter('tile_geohash', tile_geohash)
       .setParameter('tile_precision', tile_geohash.length)
       // .getSql()
       .getRawMany()
 
-      const points = _points.reduce((obj, item) => {
-        obj[item.cluster_geohash] = item
-        return obj
-      }, {})
+      // const points = _points.reduce((obj, item) => {
+      //   obj[item.cluster_geohash] = item
+      //   return obj
+      // }, {})
 
     res.status(200).json({
       clusters,
-      points
+      markers
     })
   }
 }

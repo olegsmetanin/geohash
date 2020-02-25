@@ -46,6 +46,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
+    "@olegsmetanin/geohash-common": "^0.1.0",
     "@overnightjs/core": "^1.6.14",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",

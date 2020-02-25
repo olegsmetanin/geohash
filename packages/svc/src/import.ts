@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as faker from 'faker/locale/en'
-import { Geohash } from './Geohash'
+import { Geohash } from '@olegsmetanin/geohash-common'
 
 async function main () {
   const data = JSON.parse(fs.readFileSync('data.json').toString())

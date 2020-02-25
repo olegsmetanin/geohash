@@ -2,20 +2,26 @@
   "name": "msa_bilerplate",
   "private": true,
   "workspaces": [
-    "packages/svc"
+    "packages/common",
+    "packages/svc",
+    "packages/webapp"
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "all:watch": "lerna run --parallel --stream watch",
     "all:build": "lerna run --stream build",
+    "all:start": "npm-run-all --parallel svc:start webapp:start",
     "svc:start": "cd packages/svc && yarn start",
     "svc:typeorm": "cd packages/svc && yarn typeorm",
-    "svc:test:watch": "cd packages/svc && yarn test:watch"
+    "svc:test:watch": "cd packages/svc && yarn test:watch",
+    "webapp:start": "cd packages/webapp && yarn start",
+    "webapp:test": "cd packages/webapp && yarn test"
   },
   "devDependencies": {
     "cross-env": "6.0.3",
     "husky": "4.0.10",
-    "lerna": "3.20.2"
+    "lerna": "3.20.2",
+    "npm-run-all": "^4.1.5"
   },
   "husky": {
     "hooks": {
