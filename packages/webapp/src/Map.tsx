@@ -1,7 +1,7 @@
 
 import * as React from 'react'
 import * as L from 'leaflet'
-import { Geohash, IGeoBound } from './utils/Geohash'
+import { Geohash4, IGeoBound } from './utils/Geohash4'
 
 import {
   // Children,
@@ -115,14 +115,14 @@ export class BoundsExample extends React.Component<{}, BoundsExampleState> {
       console.log(mapbounds, mapzoom)
 
       if (mapbounds && mapzoom) {
-        const precision = _precision || Geohash.zoom2precision(mapzoom)
-        const rects = Geohash.encode_bounds(
+        const precision = _precision || Geohash4.zoom2precision(mapzoom)
+        const rects = Geohash4.encode_bounds(
           mapbounds.getSouth(),
           mapbounds.getWest(),
           mapbounds?.getNorth(),
           mapbounds?.getEast(),
           precision)
-          .map((geohash: string) => Geohash.bounds(geohash))
+          .map((geohash: string) => Geohash4.bounds(geohash))
         console.log(rects)
         this.setState({ rects })
       }
@@ -136,12 +136,12 @@ export class BoundsExample extends React.Component<{}, BoundsExampleState> {
     console.log(mapbounds, mapzoom)
 
     if (mapbounds && mapzoom) {
-      const precision = Geohash.zoom2precision(mapzoom)
+      const precision = Geohash4.zoom2precision(mapzoom)
       // if (precision !== this.state.current_precision) {
       //   this.setState({markers: })
       // }
       this.setState({ current_precision: precision })
-      const rects = Geohash.encode_bounds(
+      const rects = Geohash4.encode_bounds(
         mapbounds.getSouth(),
         mapbounds.getWest(),
         mapbounds?.getNorth(),

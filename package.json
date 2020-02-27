@@ -1,5 +1,5 @@
 {
-  "name": "msa_bilerplate",
+  "name": "geohash4",
   "private": true,
   "workspaces": [
     "packages/common",
@@ -13,6 +13,7 @@
     "all:start": "npm-run-all --parallel svc:start webapp:start",
     "svc:start": "cd packages/svc && yarn start",
     "svc:typeorm": "cd packages/svc && yarn typeorm",
+    "svc:importdata": "cd packages/svc && yarn importdata",
     "svc:test:watch": "cd packages/svc && yarn test:watch",
     "webapp:start": "cd packages/webapp && yarn start",
     "webapp:test": "cd packages/webapp && yarn test"
