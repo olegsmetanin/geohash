@@ -1,23 +1,11 @@
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+/* Geohash encoding/decoding and associated functions   (c) Chris Veness 2014-2019 / MIT Licence  */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
-// Defaults for base4 geohash
+// https://codepen.io/mgevans/pen/NrGzJG
 
-const base = '0123'
-const nbits = 2
-const defEvenBit = false
+const base32 = '0123456789bcdefghjkmnpqrstuvwxyz' // (geohash-specific) Base32 map
 
-const neighbour: { [id: string]: string[] } = {
-    'n': ['2301', '2301'],
-    's': ['2301', '2301'],
-    'e': ['1032', '1032'],
-    'w': ['1032', '1032'],
-}
-
-const border: { [id: string]: string[] } = {
-    'n': ['23', '23'],
-    's': ['01', '01'],
-    'e': ['13', '13'],
-    'w': ['02', '02'],
-}
 
 export interface IGeoBound {
     sw: {
@@ -33,7 +21,7 @@ export interface IGeoBound {
 /**
  * Geohash: Gustavo Niemeyer’s geocoding system.
  */
-export class Geohash4 {
+export class Geohash {
 
     /**
      * Encodes latitude/longitude to geohash, either to specified precision or to automatically
@@ -52,12 +40,12 @@ export class Geohash4 {
         // infer precision?
         if (typeof precision == 'undefined') {
             // refine geohash until it matches precision of supplied lat/lng
-            for (let p = 1; p <= 30; p++) {
-                const hash = Geohash4.encode(lat, lng, p)
-                const posn = Geohash4.decode(hash)
+            for (let p = 1; p <= 12; p++) {
+                const hash = Geohash.encode(lat, lng, p)
+                const posn = Geohash.decode(hash)
                 if (posn.lat == lat && posn.lng == lng) return hash
             }
-            precision = 30 // set to maximum
+            precision = 12 // set to maximum
         }
 
         lat = Number(lat)
@@ -66,9 +54,9 @@ export class Geohash4 {
 
         if (isNaN(lat) || isNaN(lng) || isNaN(precision)) throw new Error('Invalid geohash')
 
-        let idx = 0 // index into base4 map
-        let bit = 0 // each char holds 2 bits
-        let evenBit = defEvenBit
+        let idx = 0 // index into base32 map
+        let bit = 0 // each char holds 5 bits
+        let evenBit = true
         let geohash = ''
 
         let latMin = -90, latMax = 90
@@ -98,9 +86,9 @@ export class Geohash4 {
             }
             evenBit = !evenBit
 
-            if (++bit == nbits) {
+            if (++bit == 5) {
                 // 5 bits gives us a character: append it and start over
-                geohash += base.charAt(idx)
+                geohash += base32.charAt(idx)
                 bit = 0
                 idx = 0
             }
@@ -123,7 +111,7 @@ export class Geohash4 {
      */
     static decode(geohash: string) {
 
-        const bounds = Geohash4.bounds(geohash) // <-- the hard work
+        const bounds = Geohash.bounds(geohash) // <-- the hard work
         // now just determine the centre of the cell...
 
         const latMin = bounds.sw.lat, lngMin = bounds.sw.lng
@@ -134,10 +122,8 @@ export class Geohash4 {
         let lng0 = (lngMin + lngMax) / 2
 
         // round to close to centre without excessive precision: ⌊2-log10(Δ°)⌋ decimal places
-        const latPrec = Math.floor(2 - Math.log(latMax - latMin) / Math.LN10)
-        const lngPrec = Math.floor(2 - Math.log(lngMax - lngMin) / Math.LN10)
-        let lat = lat0.toFixed(latPrec > 0 ? latPrec : 0)
-        let lng = lng0.toFixed(lngPrec > 0 ? lngPrec : 0)
+        let lat = lat0.toFixed(Math.floor(2 - Math.log(latMax - latMin) / Math.LN10))
+        let lng = lng0.toFixed(Math.floor(2 - Math.log(lngMax - lngMin) / Math.LN10))
 
         return { lat: Number(lat), lng: Number(lng) }
     }
@@ -157,16 +143,16 @@ export class Geohash4 {
 
         geohash = geohash.toLowerCase()
 
-        let evenBit = defEvenBit
+        let evenBit = true
         let latMin = -90, latMax = 90
         let lngMin = -180, lngMax = 180
 
         for (let i = 0; i < geohash.length; i++) {
             const chr = geohash.charAt(i)
-            const idx = base.indexOf(chr)
+            const idx = base32.indexOf(chr)
             if (idx == -1) throw new Error('Invalid geohash')
 
-            for (let n = nbits - 1; n >= 0; n--) {
+            for (let n = 4; n >= 0; n--) {
                 const bitN = idx >> n & 1
                 if (evenBit) {
                     // longitude
@@ -217,6 +203,19 @@ export class Geohash4 {
         if (geohash.length == 0) throw new Error('Invalid geohash')
         if ('nsew'.indexOf(direction) == -1) throw new Error('Invalid direction')
 
+        const neighbour: { [id: string]: string[] } = {
+            'n': ['p0r21436x8zb9dcf5h7kjnmqesgutwvy', 'bc01fg45238967deuvhjyznpkmstqrwx'],
+            's': ['14365h7k9dcfesgujnmqp0r2twvyx8zb', '238967debc01fg45kmstqrwxuvhjyznp'],
+            'e': ['bc01fg45238967deuvhjyznpkmstqrwx', 'p0r21436x8zb9dcf5h7kjnmqesgutwvy'],
+            'w': ['238967debc01fg45kmstqrwxuvhjyznp', '14365h7k9dcfesgujnmqp0r2twvyx8zb'],
+        }
+        const border: { [id: string]: string[] } = {
+            'n': ['prxz', 'bcfguvyz'],
+            's': ['028b', '0145hjnp'],
+            'e': ['bcfguvyz', 'prxz'],
+            'w': ['0145hjnp', '028b'],
+        }
+
         const lastCh = geohash.slice(-1)    // last character of hash
         let parent = geohash.slice(0, -1) // hash without last character
 
@@ -224,11 +223,11 @@ export class Geohash4 {
 
         // check for edge-cases which don't share common prefix
         if (border[direction][type].indexOf(lastCh) != -1 && parent != '') {
-            parent = Geohash4.adjacent(parent, direction)
+            parent = Geohash.adjacent(parent, direction)
         }
 
         // append letter for direction to parent
-        return parent + base.charAt(neighbour[direction][type].indexOf(lastCh))
+        return parent + base32.charAt(neighbour[direction][type].indexOf(lastCh))
     }
 
 
@@ -241,14 +240,14 @@ export class Geohash4 {
      */
     static neighbours(geohash: string) {
         return {
-            'n': Geohash4.adjacent(geohash, 'n'),
-            'ne': Geohash4.adjacent(Geohash4.adjacent(geohash, 'n'), 'e'),
-            'e': Geohash4.adjacent(geohash, 'e'),
-            'se': Geohash4.adjacent(Geohash4.adjacent(geohash, 's'), 'e'),
-            's': Geohash4.adjacent(geohash, 's'),
-            'sw': Geohash4.adjacent(Geohash4.adjacent(geohash, 's'), 'w'),
-            'w': Geohash4.adjacent(geohash, 'w'),
-            'nw': Geohash4.adjacent(Geohash4.adjacent(geohash, 'n'), 'w'),
+            'n': Geohash.adjacent(geohash, 'n'),
+            'ne': Geohash.adjacent(Geohash.adjacent(geohash, 'n'), 'e'),
+            'e': Geohash.adjacent(geohash, 'e'),
+            'se': Geohash.adjacent(Geohash.adjacent(geohash, 's'), 'e'),
+            's': Geohash.adjacent(geohash, 's'),
+            'sw': Geohash.adjacent(Geohash.adjacent(geohash, 's'), 'w'),
+            'w': Geohash.adjacent(geohash, 'w'),
+            'nw': Geohash.adjacent(Geohash.adjacent(geohash, 'n'), 'w'),
         }
     }
 
@@ -273,13 +272,13 @@ export class Geohash4 {
         if (precision <= 0) {
             throw new Error('precision must be strictly positive')
         }
-        precision = precision || 30
+        precision = precision || 12
 
-        var hashSouthWest = Geohash4.encode(minLat, minLng, precision)
-        var hashNorthEast = Geohash4.encode(maxLat, maxLng, precision)
+        var hashSouthWest = Geohash.encode(minLat, minLng, precision)
+        var hashNorthEast = Geohash.encode(maxLat, maxLng, precision)
 
-        var boxSouthWest = Geohash4.bounds(hashSouthWest)
-        var boxNorthEast = Geohash4.bounds(hashNorthEast)
+        var boxSouthWest = Geohash.bounds(hashSouthWest)
+        var boxNorthEast = Geohash.bounds(hashNorthEast)
 
         var perLat = boxSouthWest.ne.lat - boxSouthWest.sw.lat
         var perLng = boxSouthWest.ne.lng - boxSouthWest.sw.lng
@@ -296,10 +295,10 @@ export class Geohash4 {
             var poigeohash = poilatgeohash
             while (lng <= lngStep) {
                 hashList.push(poigeohash)
-                poigeohash = Geohash4.adjacent(poigeohash, 'e')
+                poigeohash = Geohash.adjacent(poigeohash, 'e')
                 lng++
             }
-            poilatgeohash = Geohash4.adjacent(poilatgeohash, 'n')
+            poilatgeohash = Geohash.adjacent(poilatgeohash, 'n')
             lat++
         }
 
@@ -314,8 +313,42 @@ export class Geohash4 {
      * @returns {precision}
      */
     static zoom2precision(zoom: number): number {
-        const z2p = zoom - 1
-        return z2p
+        const z2p = [
+            2,  // 0
+            2,  // 1
+            2,  // 2
+            2,  // 3
+            2,  // 4
+            2,  // 5
+            2,  // 6
+            3,  // 7
+            3,  // 8
+            4,  // 9
+            4,  // 10
+            4,  // 11
+            5,  // 12
+            5,  // 13
+            5,  // 14
+            5,  // 15
+            6,  // 16
+            6,  // 17
+            6,  // 18
+            7,  // 19
+            7,  // 20
+            8,  // 21
+            8,  // 22
+            8,  // 23
+            9,  // 24
+            9,  // 24
+            9,  // 25
+            10, // 26
+            10, // 27
+            10, // 28
+            11, // 29
+            11, // 30
+            12, // 31
+        ]
+        return z2p[zoom]
     }
 
 }

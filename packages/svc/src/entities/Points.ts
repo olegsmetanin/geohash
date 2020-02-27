@@ -18,4 +18,7 @@ export class Point {
   @Column({ name: 'geohash' })
   geohash?: string
 
+  @Column({ name: 'geohash4' })
+  geohash4?: string
+
 }

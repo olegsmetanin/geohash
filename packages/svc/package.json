@@ -1,6 +1,6 @@
 {
   "name": "@olegsmetanin/geohash-svc",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "view:coverage": "serve coverage/lcov-report",
     "clean": "rm -rf coverage src/**/*.js src/**/*.map",
     "start": "ts-node src/index.ts",
-    "import": "ts-node src/import.ts",
+    "importdata": "ts-node src/import.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js --config src/config/TypeORM.ts"
   },
   "repository": {
